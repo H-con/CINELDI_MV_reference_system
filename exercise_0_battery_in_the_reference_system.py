@@ -39,7 +39,7 @@ import matplotlib as mpl
 
 # Location of (processed) data set for CINELDI MV reference system
 # (to be replaced by your own local data folder)
-path_data_set         = 'C:/Users/ivespe/Data_sets/CINELDI_MV_reference_system/'
+path_data_set         = 'C:\\Users\\Hakon\\OneDrive - NTNU\\EMIL\\GIT\\Power System Operation and Analysis\\CINELDI_MV_reference_system'
 
 filename_residential_fullpath = os.path.join(path_data_set,'time_series_IDs_primarily_residential.csv')
 filename_irregular_fullpath = os.path.join(path_data_set,'time_series_IDs_irregular.csv')      
