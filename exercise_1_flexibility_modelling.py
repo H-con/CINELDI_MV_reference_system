@@ -208,3 +208,5 @@ elif N_EWH > 1:
     if (t_act != None) & (S_act != None):
         ax1.legend([h_P_base,h_P], ['without flex.','with flex.'], loc = 'upper left')
     plt.show()
+
+# %%

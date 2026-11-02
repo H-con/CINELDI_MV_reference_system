@@ -42,8 +42,7 @@ import numpy as np
 
 # Location of (processed) data set for CINELDI MV reference system
 # (to be replaced by your own local data folder)
-path_data_set         = 'C:/Users/ivespe/Data_sets/CINELDI_MV_reference_system/'
-
+path_data_set         = 'C:\\Koding\\PSOA\\CINELDI_MV_reference_system\\data_sets'
 filename_load_data_fullpath = os.path.join(path_data_set,'load_data_CINELDI_MV_reference_system.csv')
 filename_load_mapping_fullpath = os.path.join(path_data_set,'mapping_loads_to_CINELDI_MV_reference_grid.csv')
 
@@ -86,4 +85,61 @@ new_load_time_series = new_load_profiles[i_time_series_new_load]*P_max_new
 # maximum load value for each of the load points in the grid data set (in units MW); the column index is the bus number
 # (1-indexed) and the row index is the hour of the year (0-indexed)
 load_time_series_mapped = profiles_mapped.mul(net.load['p_mw'])
+# %%
+
+pp.runpp(net,init='results',algorithm='bfsw')
+print('Total load demand in the system assuming a peak load model: ' + str(net.res_load['p_mw'].sum()) + ' MW')
+# %%
+
+# Plotting voltage profile for the system
+pp_plotting.pf_res_plotly(net)
+# %%
+#Creating the new load as a static load in the system (not as a time series)
+new_load_static = pd.Series(P_max_new, index=load_time_series_mapped.index)
+
+load_demand_area = load_time_series_mapped[bus_i_subset].sum(axis=1) + new_load_time_series #+ new_load_static
+load_demand_area.plot(figsize=(12, 5), color='tab:blue', label='Aggregated load demand in area')
+
+# A load duration curve is obtained by sorting the hourly load values from highest to lowest,
+# so the x-axis becomes the duration (how many hours the load is above a given level).
+load_duration_curve = load_demand_area.sort_values(ascending=False).reset_index(drop=True)
+
+ax = load_duration_curve.plot(
+    figsize=(12, 5),
+    color='tab:green',
+    linewidth=2,
+    label='Load duration curve',
+    title='Load duration curve for buses 90, 91, 92 and 96 with new dynamic load',
+    xlabel='Duration [hours]',
+    ylabel='Load demand [MW]'
+)
+ax.axhline(P_lim, color='tab:red', linestyle='--', linewidth=1.5, label=f'Power-flow limit = {P_lim} MW')
+ax.legend()
+ax.grid(True, alpha=0.3)
+
+# The sorted series can also be used directly for threshold checks, e.g. how many hours the area load exceeds the line limit
+hours_above_limit = (load_demand_area > P_lim).sum()
+print(f'Number of hours with load above the limit: {hours_above_limit}')
+
+# %%
+
+#Finding the peak load demand in the area
+peak_load_demand = load_time_series_mapped[bus_i_subset].sum(axis=1).max() + new_load_time_series.max()
+print(f'Peak load demand in the area: {peak_load_demand} MW')
+
+bus_loads = load_time_series_mapped[bus_i_subset] 
+print(bus_loads.head())  # Display the first few rows of the bus loads DataFrame
+bus_peak_loads = bus_loads.max()          # per-bus peak demand
+
+P_max_possible_area = bus_peak_loads.sum()
+print(f'Maximum possible load demand in the area: {P_max_possible_area} MW')
+
+
+
+# %%
+
+#Calculating the coincidence factor for the area load 
+
+alpha = peak_load_demand / P_max_possible_area
+print(f'Coincidence factor for the area load: {alpha:.3f}')
 # %%
